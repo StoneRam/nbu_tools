@@ -1,4 +1,7 @@
 # nbu_tools
+
+[nbu_tools Releases](https://github.com/StoneRam/nbu_tools/releases)
+
 Various tools for managing NetBackup
 
 - [add_server_nbu](#add_server_nbu)
@@ -9,6 +12,7 @@ Various tools for managing NetBackup
 
 Use Cases:
 - [Catalog Migration Pre-check](#use-case---catalog-migration-pre-check)
+
 
 ## add_server_nbu
 
