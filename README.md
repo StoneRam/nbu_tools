@@ -1,7 +1,5 @@
 # nbu_tools
-Various tools for managing NetBackup
-
-[nbu_tools Releases](https://github.com/StoneRam/nbu_tools/releases)
+Various tools for managing NetBackup [Releases](https://github.com/StoneRam/nbu_tools/releases)
 
 - [add_server_nbu](#add_server_nbu)
 
