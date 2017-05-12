@@ -1,8 +1,7 @@
 # nbu_tools
+Various tools for managing NetBackup
 
 [nbu_tools Releases](https://github.com/StoneRam/nbu_tools/releases)
-
-Various tools for managing NetBackup
 
 - [add_server_nbu](#add_server_nbu)
 
@@ -20,12 +19,12 @@ Use Cases:
 <code>add_media_server_on_clients</code>, but more flexible and faster.</p>
 <p> Issue with <code>add_media_server_on_clients</code> that is runs in single thread and if there are 
 multiple unreachable clients in the domain it takes very long time to complete. And server 
-list is taken from bp.conf/registry on the master server, which might be undesirable in testing
+list is taken from bp.conf/registry on the master server, which might be undesired in testing
 or migration scenarios. </p>
 
 Script is written for python 2.6.9 using only standard libraries. Compatible python interpreter 
 is shipped with most major platforms. For convenience it was packaged with PyInstaller for 
-Windows and Linux platforms.
+Windows and Linux.
 
 ### Usage
 <pre>
@@ -52,7 +51,7 @@ Options:
 <p>Debug will print whole configuration for each client, don't use it on large client sets</p>
 
 ## del_server_nbu
-Deletes SERVER entries to configuration. Very similar to [add_server_nbu](#add_server_nbu)
+Deletes SERVER entries from configuration. Very similar to [add_server_nbu](#add_server_nbu)
 , but instead of add servers for the provided list it will delete the from host's configuration.
 
 
