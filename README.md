@@ -8,7 +8,7 @@ Various tools for managing NetBackup
 - [chk_con_nbu](#chk_con_nbu)
 
 Use Case:
-- [Use Case - Catalog Migration Pre-check](#Use Case - Catalog Migration Pre-check)
+- [Use Case - Catalog Migration Pre-check][]
 
 ## add_server_nbu
 
