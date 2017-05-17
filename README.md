@@ -116,16 +116,20 @@ same name. Target system has temporary name **nbutgt**.
   
 ### Solution
 
+1. Create list of all clients with 
 
-1. Verify client connectivity from the source system with [chk_con_nbu](#chk_con_nbu) or 
-<code>bptestnetconn</code>.
+    * Windows <code>FOR /F "tokens=3" %a IN ('bpplclients -allunique') DO (echo %a) >> clients.txt</code>
+  
+    * Linux and *nix <code> bpplclients -allunique| awk '{print $3}' > clients.txt </code>
 
-2.  Add temporary **nbutgt** name to all clients in source domain with [add_server_nbu](#add_server_nbu) 
+2. Verify client connectivity from the source system with [chk_con_nbu](#chk_con_nbu).
+
+3.  Add temporary **nbutgt** name to all clients in source domain with [add_server_nbu](#add_server_nbu) 
 or <code>add_media_server_on_clients</code>.
 
-3. Verify client connectivity from the target system with [chk_con_nbu](#chk_con_nbu).
+4. Verify client connectivity from the target system with [chk_con_nbu](#chk_con_nbu).
 
-4. Delete temporary **nbutgt** name from all clients in source domain with [del_server_nbu](#del_server_nbu) 
+5. Delete temporary **nbutgt** name from all clients in source domain with [del_server_nbu](#del_server_nbu) 
 or <code>add_media_server_on_clients</code>.
 
-5. Crosscheck results from steps 1 and 4. Resolve connectivity issues.
+6. Crosscheck results from steps 1 and 4. Resolve connectivity issues.
