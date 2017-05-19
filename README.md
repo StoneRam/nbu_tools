@@ -4,6 +4,7 @@
 
 Various tools for managing NetBackup
 
+## Connectivity tools
 - [add_server_nbu](#add_server_nbu)
 
 - [del_server_nbu](#del_server_nbu)
@@ -11,8 +12,20 @@ Various tools for managing NetBackup
 - [chk_con_nbu](#chk_con_nbu)
 
 Use Cases:
+
 - [Catalog Migration Pre-check](#use-case---catalog-migration-pre-check)
 
+
+## Reporting tools
+
+- [bpdbjobs_delay_report](#bpdbjobs_delay_report)
+
+Use Cases:
+
+- [Identify slow clients](#use-case---identify-slow-clients)
+- [Identify oversubscribed STUs](#use-case---identify-oversubscribed-stus)
+
+# Connectivity tools
 
 ## add_server_nbu
 
@@ -132,3 +145,100 @@ or <code>add_media_server_on_clients</code>.
 or <code>add_media_server_on_clients</code>.
 
 5. Crosscheck results from steps 1 and 4. Resolve connectivity issues.
+
+# Reporting Tools
+
+## bpdbjobs_delay_report
+
+Takes ```bpdbjobs -all_columns``` output for the **bpbkar** and **bptm** delay messages and produces series of diagrams in one pdf file.
+
+- Top ten clients by loss in throughput due to slow Clients/Network in MBps.
+
+- Top ten clients  by loss in throughput due to slow Media server in MBps.
+
+- Storage units (STU) report showing:
+    - Total throughput in MBps.
+    - Loss in throughput due to slow Clients/Network in MBps. 
+    - Loss in throughput due to Media server storage performance in MBps. 
+    
+Formula is throughput is `total throughput * (time spend waiting for buffers/ total time)`
+
+### Installation
+
+Download windows release form the link on the the page. Otherwise install Python 3.4 or above and run 
+```
+git clone https://github.com/StoneRam/nbu_tools
+pip install -r requirements_bpdbjobs.txt
+python bpdbjobs_delay_report.py [...options]
+```
+
+###Usage
+```
+usage: bpdbjobs_delay_report [-h] -f|--file BPDBJOBS -o|--output OUTPUT
+                      [-i|--interval INTERVAL] [-s|--start_date START_DATE]
+                      [-n|--skip_slps] [-y|--only_slps]
+                      [-t|--top_clients TOP_CLIENTS] [-e|--end_date END_DATE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -f|--file BPDBJOBS    file with bpdbjobs -all_columns output
+  -o|--output OUTPUT    output pdf
+  -i|--interval INTERVAL
+                        Interval
+  -s|--start_date START_DATE
+                        The Start Date - format YYYY-MM-DD-HH24
+  -n|--skip_slps        Don't count SLP stats
+  -y|--only_slps        Only count SLP stats
+  -t|--top_clients TOP_CLIENTS
+                        Number of most delayed clients to display
+  -e|--end_date END_DATE
+                        The End Date - format YYYY-MM-DD-HH24
+
+```
+
+### Theory
+
+Delay messages indicate two different issues:
+ - Network/client performance is suspect in case of **bptm**
+  `'waiting for full buffer'` messages. Buffers are available for 
+writing on the media server, but client doesn't fill them in time.
+ 
+- Media server performance issue in case of **bpbkar** messages `'waiting for empty buffer'`.
+Client is sending data faster then media server is able to write it.
+
+Some amount of delays expected and doesn't indicate any issues.
+
+### Notes
+- X-axis is labeled with Month-Day-24Hours format
+- Time frame choosen based on minimun and  maximum value of jobs start and end time 
+in `bpdbjobs` output. 
+- Compiled version take longer to execute due to exe compression.
+
+### Example reports
+
+#### Clients
+
+![Client report](https://github.com/StoneRam/nbu_tools/raw/master/images/client_example.png "Client report sample")
+
+#### Media Server - STU
+
+![Client report](https://github.com/StoneRam/nbu_tools/raw/master/images/stu_example.png "Client report sample")
+
+## Use Case - Tune NetBackup
+ 
+
+- For slow clients\network delays:
+
+    - Increase\Enable multiplexing\number of streams on storage. So more clients will could storage buffers.
+    - Increase number of data streams for client, i.e. **NEW_STREAM** directive in filesystem backup selections
+    - Reduce size of Network buffers and increase size of Disk/Tape buffers.
+    
+  
+- For media server delays:
+
+    - Reduce number of streams on storage. Clients are racing for buffers reducing 
+        overall performance.
+    - Reduce size of Disk/Tape buffers and increase size of Network buffers
+    - Spread backup schedules so they would overlap less, use generated report to make a judgement.
+    
+Often best solution is to resolve core issue, network bottleneck, underlying storage performance, etc.
