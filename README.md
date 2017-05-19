@@ -1,8 +1,5 @@
 # nbu_tools
-
-[nbu_tools Releases](https://github.com/StoneRam/nbu_tools/releases)
-
-Various tools for managing NetBackup
+Various tools for managing NetBackup [Releases](https://github.com/StoneRam/nbu_tools/releases)
 
 ## Connectivity tools
 - [add_server_nbu](#add_server_nbu)
@@ -31,14 +28,14 @@ Use Cases:
 
 <p>Adds SERVER entries to configuration, similar to bundled NetBackup's 
 <code>add_media_server_on_clients</code>, but more flexible and faster.</p>
-<p> Issue with <code>add_media_server_on_clients</code> that is runs in single thread and if there are 
+<p> Issue with <code>add_media_server_on_clients</code> that it runs in single thread and if there are 
 multiple unreachable clients in the domain it takes very long time to complete. And server 
-list is taken from bp.conf/registry on the master server, which might be undesirable in testing
+list is taken from bp.conf/registry on the master server, which might be undesired in testing
 or migration scenarios. </p>
 
 Script is written for python 2.6.9 using only standard libraries. Compatible python interpreter 
 is shipped with most major platforms. For convenience it was packaged with PyInstaller for 
-Windows and Linux platforms.
+Windows and Linux.
 
 ### Usage
 <pre>
@@ -65,7 +62,7 @@ Options:
 <p>Debug will print whole configuration for each client, don't use it on large client sets</p>
 
 ## del_server_nbu
-Deletes SERVER entries to configuration. Very similar to [add_server_nbu](#add_server_nbu)
+Deletes SERVER entries from configuration. Very similar to [add_server_nbu](#add_server_nbu)
 , but instead of add servers for the provided list it will delete the from host's configuration.
 
 
@@ -132,19 +129,23 @@ same name. Target system has temporary name **nbutgt**.
   
 ### Solution
 
+1. Create list of all clients with 
 
-1. Verify client connectivity from the source system with [chk_con_nbu](#chk_con_nbu) or 
-<code>bptestnetconn</code>.
+    * Windows <code>FOR /F "tokens=3" %a IN ('bpplclients -allunique') DO (echo %a) >> clients.txt</code>
+  
+    * Linux and *nix <code> bpplclients -allunique| awk '{print $3}' > clients.txt </code>
 
-2.  Add temporary **nbutgt** name to all clients in source domain with [add_server_nbu](#add_server_nbu) 
+2. Verify client connectivity from the source system with [chk_con_nbu](#chk_con_nbu).
+
+3.  Add temporary **nbutgt** name to all clients in source domain with [add_server_nbu](#add_server_nbu) 
 or <code>add_media_server_on_clients</code>.
 
-3. Verify client connectivity from the target system with [chk_con_nbu](#chk_con_nbu).
+4. Verify client connectivity from the target system with [chk_con_nbu](#chk_con_nbu).
 
-4. Delete temporary **nbutgt** name from all clients in source domain with [del_server_nbu](#del_server_nbu) 
+5. Delete temporary **nbutgt** name from all clients in source domain with [del_server_nbu](#del_server_nbu) 
 or <code>add_media_server_on_clients</code>.
 
-5. Crosscheck results from steps 1 and 4. Resolve connectivity issues.
+6. Crosscheck results from steps 1 and 4. Resolve connectivity issues.
 
 # Reporting Tools
 
