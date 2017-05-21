@@ -19,8 +19,7 @@ Use Cases:
 
 Use Cases:
 
-- [Identify slow clients](#use-case---identify-slow-clients)
-- [Identify oversubscribed STUs](#use-case---identify-oversubscribed-stus)
+- [Tune NetBackup](#use-case---tune-netbackup)
 
 # Connectivity tools
 
