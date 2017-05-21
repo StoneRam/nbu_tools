@@ -25,8 +25,7 @@ Use Cases:
 
 ## add_server_nbu
 
-Adds SERVER entries to configuration, similar to bundled NetBackup's 
-`add_media_server_on_clients`, but more flexible and faster.
+Adds SERVER entries to configuration, similar to bundled NetBackup's `add_media_server_on_clients`, but more flexible and faster.
 
 Issue with `add_media_server_on_clients` that it runs in single thread and if there are 
 multiple unreachable clients in the domain it takes very long time to complete. And server 
