@@ -25,19 +25,20 @@ Use Cases:
 
 ## add_server_nbu
 
-<p>Adds SERVER entries to configuration, similar to bundled NetBackup's 
-<code>add_media_server_on_clients</code>, but more flexible and faster.</p>
-<p> Issue with <code>add_media_server_on_clients</code> that it runs in single thread and if there are 
+Adds SERVER entries to configuration, similar to bundled NetBackup's 
+`add_media_server_on_clients`, but more flexible and faster.
+
+Issue with `add_media_server_on_clients` that it runs in single thread and if there are 
 multiple unreachable clients in the domain it takes very long time to complete. And server 
 list is taken from bp.conf/registry on the master server, which might be undesired in testing
-or migration scenarios. </p>
+or migration scenarios.
 
 Script is written for python 2.6.9 using only standard libraries. Compatible python interpreter 
 is shipped with most major platforms. For convenience it was packaged with PyInstaller for 
 Windows and Linux.
 
 ### Usage
-<pre>
+```
 Usage: add_server_nbu.exe [options] host1 host2 host3 ...
 
 Options:
@@ -53,12 +54,13 @@ Options:
                         number of threads to run simultaneously
   -v, --verbose         print status messages to stdout
   -d, --debug           print debug messages to stdout
-</pre>
+```
 
 ### Notes
  
-<p>If client becomes unreachable after config update, script will terminate all threads and exit.</p>
-<p>Debug will print whole configuration for each client, don't use it on large client sets</p>
+If client becomes unreachable after config update, script will terminate all threads and exit.
+
+Debug will print whole configuration for each client, don't use it on large client sets
 
 ## del_server_nbu
 Deletes SERVER entries from configuration. Very similar to [add_server_nbu](#add_server_nbu)
@@ -87,18 +89,16 @@ Options:
 
 ### Notes
  
-<p>If client becomes unreachable after config update, script will terminate all threads and exit.</p>
-<p>Debug will print whole configuration for each client. Don't use it on large client sets
-as it will flood output.</p>
+If client becomes unreachable after config update, script will terminate all threads and exit.
+
+Debug will print whole configuration for each client. Don't use it on large client sets as it will flood output.
 
 ## chk_con_nbu
 
-<p>Checks client connectivity by connecting to NetBackup's PBX(1556), BPCD(13724) ports and 
-executing <code>bpgetconfig</code>. Advantage over <code>bptestbpcd</code> and 
-<code>bptestnetconn</code> is flexibility in client selection and performance. 
+Checks client connectivity by connecting to NetBackup's PBX(1556), BPCD(13724) ports and executing `bpgetconfig`. Advantage over`bptestbpcd` and `bptestnetconn` is flexibility in client selection and performance. 
 
 ### Usage
-<pre>
+```
 Usage: chk_con_nbu.exe [options] host1 host2 host3 ...
 
 Options:
@@ -113,12 +113,11 @@ Options:
                         number of threads to run simultaneously
   -v, --verbose         print status messages to stdout
   -d, --debug           print debug messages to stdout
- </pre>
+```
  
  ### Notes
  
-<p>When using <code>skip_bpgetconfig</code> report will show this check as success</p>
-
+When using `skip_bpgetconfig` report will show this check as success.
 
 ## Use Case - Catalog Migration Pre-check
 ### Scenario
@@ -130,19 +129,19 @@ same name. Target system has temporary name **nbutgt**.
 
 1. Create list of all clients with 
 
-    * Windows <code>FOR /F "tokens=3" %a IN ('bpplclients -allunique') DO (echo %a) >> clients.txt</code>
+    * Windows `FOR /F "tokens=3" %a IN ('bpplclients -allunique') DO (echo %a) >> clients.txt`
   
-    * Linux and *nix <code> bpplclients -allunique| awk '{print $3}' > clients.txt </code>
+    * Linux and *nix ` bpplclients -allunique| awk '{print $3}' > clients.txt`
 
 2. Verify client connectivity from the source system with [chk_con_nbu](#chk_con_nbu).
 
 3.  Add temporary **nbutgt** name to all clients in source domain with [add_server_nbu](#add_server_nbu) 
-or <code>add_media_server_on_clients</code>.
+or `add_media_server_on_clients`.
 
 4. Verify client connectivity from the target system with [chk_con_nbu](#chk_con_nbu).
 
 5. Delete temporary **nbutgt** name from all clients in source domain with [del_server_nbu](#del_server_nbu) 
-or <code>add_media_server_on_clients</code>.
+or `add_media_server_on_clients`.
 
 6. Crosscheck results from steps 1 and 4. Resolve connectivity issues.
 
@@ -199,19 +198,15 @@ optional arguments:
 ### Theory
 
 Delay messages indicate two different issues:
- - Network/client performance is suspect in case of **bptm**
-  `'waiting for full buffer'` messages. Buffers are available for 
-writing on the media server, but client doesn't fill them in time.
+ - Network/client performance is suspect in case of **bptm** `'waiting for full buffer'` messages. Buffers are available for writing on the media server, but client doesn't fill them in time.
  
-- Media server performance issue in case of **bpbkar** messages `'waiting for empty buffer'`.
-Client is sending data faster then media server is able to write it.
+- Media server performance issue in case of **bpbkar** messages `'waiting for empty buffer'`. Client is sending data faster then media server is able to write it.
 
 Some amount of delays expected and doesn't indicate any issues.
 
 ### Notes
 - X-axis is labeled with Month-Day-24Hours format
-- Time frame choosen based on minimun and  maximum value of jobs start and end time 
-in `bpdbjobs` output. 
+- Time frame choosen based on minimun and  maximum value of jobs start and end time in `bpdbjobs` output. 
 - Compiled version take longer to execute due to exe compression.
 
 ### Example reports
@@ -238,7 +233,7 @@ in `bpdbjobs` output.
 
     - Reduce number of streams on storage. Clients are racing for buffers reducing 
         overall performance.
-    - Reduce size of Disk/Tape buffers and increase size of Network buffers
+    - Reduce size of Disk/Tape buffers and increase size of Network buffers.
     - Spread backup schedules so they would overlap less, use generated report to make a judgement.
     
 Often best solution is to resolve core issue, network bottleneck, underlying storage performance, etc.
