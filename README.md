@@ -25,7 +25,8 @@ Use Cases:
 
 ## add_server_nbu
 
-Adds SERVER entries to configuration, similar to bundled NetBackup's `add_media_server_on_clients`, but more flexible and faster.
+Adds SERVER entries to configuration, similar to bundled NetBackup's 
+`add_media_server_on_clients`, but more flexible and faster.
 
 Issue with `add_media_server_on_clients` that it runs in single thread and if there are 
 multiple unreachable clients in the domain it takes very long time to complete. And server 
@@ -159,7 +160,7 @@ Takes ```bpdbjobs -all_columns``` output for the **bpbkar** and **bptm** delay m
     - Loss in throughput due to slow Clients/Network in MBps. 
     - Loss in throughput due to Media server storage performance in MBps. 
     
-Formula is throughput is `total throughput * (time spend waiting for buffers/ total time)`
+Formula is throughput is `total throughput * (time spend waiting for buffers/ total time) * (1 - dedup ratio)`
 
 ### Installation
 
