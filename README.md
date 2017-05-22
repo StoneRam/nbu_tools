@@ -149,7 +149,7 @@ or `add_media_server_on_clients`.
 
 ## bpdbjobs_delay_report
 
-Takes ```bpdbjobs -all_columns``` output for the **bpbkar** and **bptm** delay messages and produces series of diagrams in one pdf file.
+Takes ```bpdbjobs -all_columns``` output, analyses **bpbkar** and **bptm** delay messages and produces series of diagrams in one pdf file.
 
 - Top ten clients by loss in throughput due to slow Clients/Network in MBps.
 
