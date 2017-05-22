@@ -22,6 +22,7 @@ JOBID_OFFSET = 0
 BYTES_TRY_OFFSET = 10
 JOB_TYPE_OFFSET = 1
 CLIENT_OFFSET = 6
+DEDUP_RATIO_OFFSET = 61
 POLICY_OFFSET = 4
 TRY_FIELD_COUNT = 11
 
@@ -35,6 +36,8 @@ BPTM_DELAY = 0.015  # sec
 BPBKAR_DELAY = 0.015  # sec
 
 INTERVAL = 300  # 5 min
+
+dedup_re = re.compile('.*dedup: (\d*\.\d+|\d+)%.*')
 
 
 def valid_date(s):
@@ -109,13 +112,21 @@ with open(args.bpdbjobs, 'r', encoding='utf-8') as f:
             lines_count = int(row[this_try_offset + LINES_COUNT_TRY_OFFSET])
             start_time = int(row[this_try_offset + START_TIME_TRY_OFFSET])
             elapsed_time = int(row[this_try_offset + ELAPSED_TIME_TRY_OFFSET])
-            bytes = float(row[this_try_offset + BYTES_TRY_OFFSET + lines_count])
+            kbytes = float(row[this_try_offset + BYTES_TRY_OFFSET + lines_count])
             end_time = int(row[this_try_offset + END_TIME_TRY_OFFSET])
             try:
-                throughput = bytes / elapsed_time / 1024
+                throughput = kbytes / elapsed_time / 1024
             except ZeroDivisionError:
                 throughput = 0
             start_offset = start_time - start_time % args.interval
+            # Normalize throughput and size to duplication
+            for line in reversed(
+                    row[this_try_offset + LINES_TRY_OFFSET: this_try_offset + LINES_TRY_OFFSET + lines_count]):
+                if dedup_re.match(line):
+                    dedup_ratio = float(dedup_re.match(line).group(1)) / 100
+                    kbytes = kbytes * (1 - dedup_ratio)
+                    throughput = throughput * (1 - dedup_ratio)
+                    break
             for line in row[this_try_offset + LINES_TRY_OFFSET: this_try_offset + LINES_TRY_OFFSET + lines_count]:
                 for i in range(start_offset, end_time, args.interval):
                     k = date2num(datetime.fromtimestamp(i))
