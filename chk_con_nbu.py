@@ -28,7 +28,7 @@ parser.add_option("-s", "--skip_bpgetconfig", action="store_true",
                   dest="skip_bpgetconfig", default=False,
                   help="Don't run bpgetconfig to confirm connection")
 parser.add_option("-n", "--num_threads",
-                  dest="num_threads", default=100,
+                  dest="num_threads", default=100, type=int
                   help="number of threads to run simultaneously")
 parser.add_option("-v", "--verbose",
                   action="store_true", dest="verbose", default=False,
@@ -109,6 +109,7 @@ class Host(object):
 
 def test_soc(host, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(2.0)
     logging.info("testing connection to {0} port {1}".format(host, port))
     try:
         if sock.connect_ex((host, port)) == 0:
