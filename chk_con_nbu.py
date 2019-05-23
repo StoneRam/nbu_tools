@@ -8,9 +8,23 @@ from math import ceil
 from optparse import OptionParser
 from sys import exit, stdout
 
-is_win = True if platform.system() == 'Windows' else False
-bin_admin_path = r'C:\Program Files\Veritas\NetBackup\bin\admincmd' if is_win else r'/usr/openv/netbackup/bin/admincmd'
-BPGETCONFIG = r'bpgetconfig.exe' if is_win else r'bpgetconfig'
+if platform.system() == 'Windows':
+    is_win = True
+else:
+    is_win = False
+    
+if is_win:
+    bin_admin_path = r'C:\Program Files\Veritas\NetBackup\bin\admincmd'
+    BPGETCONFIG = r'bpgetconfig.exe'
+else:
+    bin_admin_path = r'/usr/openv/netbackup/bin/admincmd'
+    BPGETCONFIG = r'bpgetconfig'
+
+if is_win:
+    bin_admin_path = r'C:\Program Files\Veritas\NetBackup\bin\admincmd'
+else:
+    bin_admin_path = r'/usr/openv/netbackup/bin/admincmd'
+
 FORMAT = 'thread %(thread)d: %(message)s '
 
 PBX_PORT = 1556
@@ -51,8 +65,9 @@ else:
 
 if options.filename:
     if os.path.isfile(options.filename):
-        with open(options.filename) as f:
-            hosts = hosts + f.read().splitlines()
+        f = open(options.filename)
+        hosts = hosts + f.read().splitlines()
+        f.close()
 
 if len(hosts) == 0:
     logging.critical('No hosts were provided for a check')
@@ -60,7 +75,7 @@ if len(hosts) == 0:
 
 if not options.skip_bpgetconfig:
     if not os.path.isfile(os.path.join(options.bin_admin, BPGETCONFIG)):
-        logging.critical("Can't find bpgetconfig in {0}".format(options.bin_admin))
+        logging.critical("Can't find bpgetconfig in %s" % options.bin_admin)
         exit(1)
 
 
@@ -95,22 +110,21 @@ class Host(object):
 
     def report(self):
         if not self.failed:
-            print 'host {0} was reachable'.format(self.name)
+            print 'host %s was reachable' % self.name
         else:
             if self.complete:
-                print 'host {0} was completely unreachable'.format(self.name)
+                print 'host %s was completely unreachable' % self.name
             else:
-                print 'host {0} was partially unreachable bpcd: {1}, pbx {2}, bpgetconfig {3}'.format(
-                    self.name,
-                    'OK' if self.bpcd else 'FAILED',
-                    'OK' if self.pbx else 'FAILED',
-                    'OK' if self.bpgetconfig else 'FAILED')
+                print 'host %s was partially unreachable bpcd: %s, pbx %s, bpgetconfig %s' %  (self.name,
+                    self.bpcd,
+                    self.pbx,
+                    self.bpgetconfig)
 
 
 def test_soc(host, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(2.0)
-    logging.info("testing connection to {0} port {1}".format(host, port))
+    logging.info("testing connection to %s port %s" % (host, port))
     try:
         if sock.connect_ex((host, port)) == 0:
             sock.close()
@@ -129,16 +143,16 @@ def check_nbu_port(task_list):
         host.bpcd = test_soc(host.name, BPCD_PORT)
         if not options.skip_bpgetconfig:
             try:
-                with open(os.devnull, 'w') as FNULL:
-                    out = subprocess.Popen([os.path.join(options.bin_admin, BPGETCONFIG), "-M", host.name],
+                FNULL = open(os.devnull, 'w')
+                out = subprocess.Popen([os.path.join(options.bin_admin, BPGETCONFIG), "-M", host.name],
                                            stdout=subprocess.PIPE, stderr=FNULL).communicate()[0].strip()
-                logging.debug("bpgetconfig from {0} returned >>{2}{1}{2}<<".format(host, out, os.linesep))
+                logging.debug("bpgetconfig from %s returned >>%s%s%s<<" % (host, os.linesep, out, os.linesep))
                 if len(out) == 0:
                     host.bpgetconfig = False
             except subprocess.CalledProcessError:
                 host.bpgetconfig = False
         else:
-            logging.info('bpgetconfig test was skipped for {0}'.format(host.name))
+            logging.info('bpgetconfig test was skipped for %s' % host.name)
         result.append(host)
     return
 
