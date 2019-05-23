@@ -28,7 +28,7 @@ parser.add_option("-s", "--skip_bpgetconfig", action="store_true",
                   dest="skip_bpgetconfig", default=False,
                   help="Don't run bpgetconfig to confirm connection")
 parser.add_option("-n", "--num_threads",
-                  dest="num_threads", default=100, type=int
+                  dest="num_threads", default=100, type=int,
                   help="number of threads to run simultaneously")
 parser.add_option("-v", "--verbose",
                   action="store_true", dest="verbose", default=False,
