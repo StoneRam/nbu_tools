@@ -144,6 +144,7 @@ def check_nbu_port(task_list):
         if not options.skip_bpgetconfig:
             try:
                 FNULL = open(os.devnull, 'w')
+                logging.info("testing connection via bpgetconfig for %s" % (host))
                 out = subprocess.Popen([os.path.join(options.bin_admin, BPGETCONFIG), "-M", host.name],
                                            stdout=subprocess.PIPE, stderr=FNULL).communicate()[0].strip()
                 logging.debug("bpgetconfig from %s returned >>%s%s%s<<" % (host, os.linesep, out, os.linesep))
