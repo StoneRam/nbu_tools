@@ -95,6 +95,7 @@ class Host(object):
         self.name = host
         self.pbx = True
         self.bpcd = True
+        self.cert = True
         self.bpgetconfig = True
 
     @property
@@ -116,10 +117,12 @@ class Host(object):
             if self.complete:
                 print 'host %s was completely unreachable' % self.name
             else:
-                print 'host %s was partially unreachable bpcd: %s, pbx %s, bpgetconfig %s' %  (self.name,
+                print 'host %s was partially unreachable bpcd: %s, pbx %s, bpgetconfig %s, certificate %s' %  (self.name,
                     self.bpcd,
                     self.pbx,
-                    self.bpgetconfig)
+                    self.bpgetconfig,
+                    self.cert
+                  )
 
 
 def test_soc(host, port):
@@ -151,12 +154,14 @@ def check_nbu_port(task_list):
                 timer = Timer(5, proc.kill)
                 try:
                     timer.start()
-                    out = proc.communicate()[0].strip()
+                    out, err = proc.communicate()[0].strip()
                 finally:
                     timer.cancel() 
                 logging.debug("bpgetconfig from %s returned >>%s%s%s<<" % (host, os.linesep, out, os.linesep))
                 if len(out) == 0:
                     host.bpgetconfig = False
+                    if err[:9]  = "the vnetd":
+                        host.cert = False
             except subprocess.CalledProcessError:
                 host.bpgetconfig = False
         else:
