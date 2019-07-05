@@ -4,6 +4,7 @@ import platform
 import socket
 import subprocess
 import threading
+from threading import Timer
 from math import ceil
 from optparse import OptionParser
 from sys import exit, stdout
@@ -145,8 +146,14 @@ def check_nbu_port(task_list):
             try:
                 FNULL = open(os.devnull, 'w')
                 logging.info("testing connection via bpgetconfig for %s" % (host))
-                out = subprocess.Popen([os.path.join(options.bin_admin, BPGETCONFIG), "-M", host.name],
-                                           stdout=subprocess.PIPE, stderr=FNULL).communicate()[0].strip()
+                proc = subprocess.Popen([os.path.join(options.bin_admin, BPGETCONFIG), "-M", host.name],
+                                           stdout=subprocess.PIPE, stderr=FNULL)
+                timer = Timer(5, proc.kill)
+                try:
+                    timer.start()
+                    out = proc.communicate()[0].strip()
+                finally:
+                    timer.cancel() 
                 logging.debug("bpgetconfig from %s returned >>%s%s%s<<" % (host, os.linesep, out, os.linesep))
                 if len(out) == 0:
                     host.bpgetconfig = False
