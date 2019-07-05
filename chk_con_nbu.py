@@ -13,7 +13,7 @@ if platform.system() == 'Windows':
     is_win = True
 else:
     is_win = False
-    
+
 if is_win:
     bin_admin_path = r'C:\Program Files\Veritas\NetBackup\bin\admincmd'
     BPGETCONFIG = r'bpgetconfig.exe'
@@ -121,8 +121,7 @@ class Host(object):
                     self.bpcd,
                     self.pbx,
                     self.bpgetconfig,
-                    self.cert
-                  )
+                    self.cert)
 
 
 def test_soc(host, port):
@@ -150,17 +149,20 @@ def check_nbu_port(task_list):
                 FNULL = open(os.devnull, 'w')
                 logging.info("testing connection via bpgetconfig for %s" % (host))
                 proc = subprocess.Popen([os.path.join(options.bin_admin, BPGETCONFIG), "-M", host.name],
-                                           stdout=subprocess.PIPE, stderr=FNULL)
+                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 timer = Timer(5, proc.kill)
                 try:
                     timer.start()
-                    out, err = proc.communicate()[0].strip()
+                    out, err = proc.communicate()
+                    logging.info(err)
+                    out =out.strip()
                 finally:
-                    timer.cancel() 
+                    timer.cancel()
                 logging.debug("bpgetconfig from %s returned >>%s%s%s<<" % (host, os.linesep, out, os.linesep))
                 if len(out) == 0:
                     host.bpgetconfig = False
-                    if err[:9]  = "the vnetd":
+                    logging.info(err)
+                    if err[:9] == "the vnetd":
                         host.cert = False
             except subprocess.CalledProcessError:
                 host.bpgetconfig = False
