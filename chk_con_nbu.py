@@ -140,8 +140,10 @@ def test_soc(host, port):
 
 
 def check_nbu_port(task_list):
-    for h in task_list:
-        host = Host(h)
+    while task_list:
+        host = task_list.pop()
+		if !host:
+			break
         host.pbx = test_soc(host.name, PBX_PORT)
         host.bpcd = test_soc(host.name, BPCD_PORT)
         if not options.skip_bpgetconfig:
@@ -175,10 +177,8 @@ def check_nbu_port(task_list):
 threads = []
 
 if __name__ == '__main__':
-    part_hosts = split(hosts, int(ceil(float(len(hosts)) / options.num_threads)))
-
-    for task_list in part_hosts:
-        t = threading.Thread(target=check_nbu_port, args=(task_list,))
+    for task_list in range(options.num_threads):
+        t = threading.Thread(target=check_nbu_port, args=(hosts,))
         threads.append(t)
         t.start()
 
