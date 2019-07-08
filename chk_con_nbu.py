@@ -142,7 +142,7 @@ def test_soc(host, port):
 def check_nbu_port(task_list):
     while task_list:
         host = task_list.pop()
-		if !host:
+		if not host:
 			break
         host.pbx = test_soc(host.name, PBX_PORT)
         host.bpcd = test_soc(host.name, BPCD_PORT)
