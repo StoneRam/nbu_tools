@@ -17,9 +17,11 @@ else:
 if is_win:
     bin_admin_path = r'C:\Program Files\Veritas\NetBackup\bin\admincmd'
     BPGETCONFIG = r'bpgetconfig.exe'
+    BPSETCONFIG = r'bpsetconfig.exe'
 else:
     bin_admin_path = r'/usr/openv/netbackup/bin/admincmd'
     BPGETCONFIG = r'bpgetconfig'
+    BPSETCONFIG = r'bpsetconfig'
 
 if is_win:
     bin_admin_path = r'C:\Program Files\Veritas\NetBackup\bin\admincmd'
@@ -45,6 +47,7 @@ parser.add_option("-s", "--skip_bpgetconfig", action="store_true",
 parser.add_option("-n", "--num_threads",
                   dest="num_threads", default=100, type=int,
                   help="number of threads to run simultaneously")
+parser.add_option("-e", "--emm", dest="emm", type=str, help="EMMSERVER entry")
 parser.add_option("-v", "--verbose",
                   action="store_true", dest="verbose", default=False,
                   help="print status messages to stdout")
@@ -67,7 +70,7 @@ else:
 if options.filename:
     if os.path.isfile(options.filename):
         f = open(options.filename)
-        hosts = hosts + f.read().splitlines()
+        hosts = hosts + [x.rstrip() for x in f.read().splitlines()]
         f.close()
 
 if len(hosts) == 0:
@@ -112,21 +115,24 @@ class Host(object):
 
     def report(self):
         if not self.failed:
-            print 'host %s was reachable' % self.name
+            print
+            'host %s was reachable' % self.name
         else:
             if self.complete:
-                print 'host %s was completely unreachable' % self.name
+                print
+                'host %s was completely unreachable' % self.name
             else:
-                print 'host %s was partially unreachable bpcd: %s, pbx %s, bpgetconfig %s, certificate %s' %  (self.name,
-                    self.bpcd,
-                    self.pbx,
-                    self.bpgetconfig,
-                    self.cert)
+                print
+                'host %s was partially unreachable bpcd: %s, pbx %s, bpgetconfig %s, certificate %s' % (self.name,
+                                                                                                        self.bpcd,
+                                                                                                        self.pbx,
+                                                                                                        self.bpgetconfig,
+                                                                                                        self.cert)
 
 
 def test_soc(host, port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(2.0)
+    sock.settimeout(5.0)
     logging.info("testing connection to %s port %s" % (host, port))
     try:
         if sock.connect_ex((host, port)) == 0:
@@ -140,27 +146,47 @@ def test_soc(host, port):
 
 
 def check_nbu_port(task_list):
-    while task_list:
-        host = task_list.pop()
-		if not host:
-			break
+    for h in task_list:
+        host = Host(h)
         host.pbx = test_soc(host.name, PBX_PORT)
         host.bpcd = test_soc(host.name, BPCD_PORT)
+        FNULL = open(os.devnull, 'w')
+        if options.emm:
+            try:
+                logging.info("updating EMM for %s" % (host.name))
+                proc = subprocess.Popen([os.path.join(options.bin_admin, BPSETCONFIG), "-h", host.name],
+                                        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                timer = Timer(5, proc.kill)
+                try:
+                    timer.start()
+                    out, err = proc.communicate("EMMSERVER = %s" % (options.emm))
+                    logging.info(err)
+                    out = out.strip()
+                finally:
+                    timer.cancel()
+                logging.debug("bpgetconfig from %s returned >>%s%s%s<<" % (host.name, os.linesep, out, os.linesep))
+                if len(out) == 0:
+                    host.bpgetconfig = False
+                    logging.info(err)
+                    if err[:9] == "the vnetd":
+                        host.cert = False
+            except subprocess.CalledProcessError:
+                host.bpsetconfig = False
+        host.bpgetconfig = False
         if not options.skip_bpgetconfig:
             try:
-                FNULL = open(os.devnull, 'w')
                 logging.info("testing connection via bpgetconfig for %s" % (host))
                 proc = subprocess.Popen([os.path.join(options.bin_admin, BPGETCONFIG), "-M", host.name],
-                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 timer = Timer(5, proc.kill)
                 try:
                     timer.start()
                     out, err = proc.communicate()
                     logging.info(err)
-                    out =out.strip()
+                    out = out.strip()
                 finally:
                     timer.cancel()
-                logging.debug("bpgetconfig from %s returned >>%s%s%s<<" % (host, os.linesep, out, os.linesep))
+                logging.debug("bpgetconfig from %s returned >>%s%s%s<<" % (host.name, os.linesep, out, os.linesep))
                 if len(out) == 0:
                     host.bpgetconfig = False
                     logging.info(err)
@@ -177,8 +203,10 @@ def check_nbu_port(task_list):
 threads = []
 
 if __name__ == '__main__':
-    for task_list in range(options.num_threads):
-        t = threading.Thread(target=check_nbu_port, args=(hosts,))
+    part_hosts = split(hosts, int(ceil(float(len(hosts)) / options.num_threads)))
+
+    for task_list in part_hosts:
+        t = threading.Thread(target=check_nbu_port, args=(task_list,))
         threads.append(t)
         t.start()
 
